@@ -13,56 +13,22 @@ app.get('/', (req, res) => {
     res.send('Hello, this is the root path!');
 });
 
-app.get('/derana/news', async (req, res) => {
+app.get('/adaderana/news', async (req, res) => {
     try {
         const url = "http://sinhala.adaderana.lk/sinhala-hot-news.php";
         const response = await axios.get(url);
 
         const $ = cheerio.load(response.data, { decodeEntities: false });
-        const results = [];
+        const firstNews = $('div.news-story div.story-text').first();
 
-        $('div.news-story div.story-text h2 a').each((i, elem) => {
-            const news = {
-                url: "http://sinhala.adaderana.lk/" + elem.attribs.href,
-                text: $(elem).text()
-            };
-            results.push(news);
-        });
+        const news = {
+            url: "http://sinhala.adaderana.lk/" + firstNews.find('h2 a').attr('href'),
+            text: firstNews.find('h2 a').text(),
+            image: firstNews.find('div.thumb-image img').attr('src'),
+            body: firstNews.find('p').text()
+        };
 
-        $('div.news-story div.story-text div.thumb-image img').each((i, elem) => {
-            results[i].image = elem.attribs.src;
-        });
-
-        $('div.news-story div.story-text p').each((i, elem) => {
-            results[i].body = $(elem).text();
-        });
-
-        res.send({ data: results });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send({ error: 'Internal Server Error' });
-    }
-});
-
-app.get('/esana/news', async (req, res) => {
-    try {
-        const url = "https://www.helakuru.lk/esana";
-        const response = await axios.get(url);
-
-        const $ = cheerio.load(response.data, { decodeEntities: false });
-        const results = [];
-
-        $('.story-text').each((i, elem) => {
-            const news = {
-                title: $(elem).find('h2 a').text(),
-                url: "https://www.helakuru.lk/esana" + $(elem).find('h2 a').attr('href'),
-                image: $(elem).find('div.thumb-image img').attr('src'),
-                body: $(elem).find('p').text()
-            };
-            results.push(news);
-        });
-
-        res.send({ data: results });
+        res.send({ data: [news] });
     } catch (err) {
         console.error(err);
         res.status(500).send({ error: 'Internal Server Error' });
