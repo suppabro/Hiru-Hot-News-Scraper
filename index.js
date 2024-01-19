@@ -44,18 +44,20 @@ app.get('/derana/news', async (req, res) => {
     }
 });
 
-app.get('/hirunews/news', async (req, res) => {
+app.get('/esana/news', async (req, res) => {
     try {
-        const url = "http://www.hirunews.lk/sinhala/local-news.php";
+        const url = "https://www.helakuru.lk/esana";
         const response = await axios.get(url);
 
         const $ = cheerio.load(response.data, { decodeEntities: false });
         const results = [];
 
-        $('div.rp-ltsbx div.rp-mian div.lts-cntp a').each((i, elem) => {
+        $('.story-text').each((i, elem) => {
             const news = {
-                url: elem.attribs.href,
-                text: $(elem).text()
+                title: $(elem).find('h2 a').text(),
+                url: "https://www.helakuru.lk/esana" + $(elem).find('h2 a').attr('href'),
+                image: $(elem).find('div.thumb-image img').attr('src'),
+                body: $(elem).find('p').text()
             };
             results.push(news);
         });
